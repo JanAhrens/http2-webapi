@@ -1,0 +1,415 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>HTTP/2 WebAPI Hamburg</title>
+
+    <link rel="stylesheet" href="slides/css/reveal.css">
+    <link rel="stylesheet" href="slides/css/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="slides/lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match(/print-pdf/gi) ? 'slides/css/print/pdf.css' : 'slides/css/print/paper.css';
+        document.getElementsByTagName('head')[0].appendChild(link);
+    </script>
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <section>
+            <h3>HTTP/2 for WebAPIs</h3>
+            <h4>One year after 🔍</h4>
+        </section>
+
+        <section>
+            <h3>Raise your hands ✋</h3>
+            <p class="fragment">Who used HTTP/1.1 for Web APIs?</p>
+            <p class="fragment">Who looked at SPDY?</p>
+            <p class="fragment">Who read about HTTP/2</p>
+            <p class="fragment">Who used HTTP/2 <span class="fragment">in production?</span></p>
+        </section>
+
+        <section>
+          <section>
+            <h3>Part 0: Brief HTTP history 🚂</h3>
+          </section>
+
+          <section>
+            <h3>HTTP/1.0</h3>
+            <p class="fragment"><a target="_blank" href="https://www.w3.org/Protocols/HTTP/AsImplemented.html">HTTP V0.9</a> in 1991 - only GET 🍼</p>
+            <p class="fragment"><a target="_blank" href="https://tools.ietf.org/html/rfc1945">HTTP V1.0</a> in 1996 - other methods and headers</p>
+          </section>
+
+          <section>
+            <h3>HTTP/1.1</h3>
+            <p class="fragment"><a target="_blank" href="https://tools.ietf.org/html/rfc2068">HTTP/1.1</a> in 1997</p>
+            <p class="fragment">Updates in 1999 as <a target="_blank" href="https://tools.ietf.org/html/rfc2616">RFC 2616</a> 👍</p>
+            <p class="fragment">2007: HTTPbis WG formed to work on a revised spec 👓 </p>
+            <p class="fragment">2014: <a target="_blank" href="https://tools.ietf.org/html/rfc7230">RFC 723{0,5}</a> released ⌛️</p>
+            <p class="fragment">Don't use RFC 2616 any longer ⚠️</p>
+          </section>
+
+          <section>
+            <h3>HTTP/2</h3>
+            <p class="fragment">July 2012: Google made SPDY public 🚀</p>
+            <p class="fragment">November 2012: SPDY <a target="_blank" href="http://lists.w3.org/Archives/Public/ietf-http-wg/2012OctDec/0447.html">gets used as first draft</a> for HTTP/2</p>
+            <p class="fragment">2015: Release of RFC 7540 (HTTP/2) 🎉</p>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h3>Part 1: What HTTP/2 is about 🔮</h3>
+          </section>
+
+          <section>
+              <h3>No change in semantics 🎉</h3>
+              <p class="fragment">No new verbs</p>
+              <p class="fragment">No change in status code</p>
+              <p class="fragment">Same request and response cycle</p>
+              <p class="fragment"><a target="_blank" href="https://tools.ietf.org/html/rfc7230">RFC 723{0,5}</a> (HTTP/1.1) still applies</p>
+          </section>
+
+          <section>
+            <blockquote>
+              <p>
+               This specification is an alternative to, but does not obsolete, the HTTP/1.1 message
+               syntax. HTTP's existing semantics remain unchanged.
+             </p>
+             <footer>
+               - <cite><a href="https://tools.ietf.org/html/rfc7540">RFC 7540 (HTTP/2)</a></cite>
+             </footer>
+            </blockquote>
+          </section>
+
+          <section>
+            <h3>Binary protocol 🤔</h3>
+            <p class="fragment">Goodbye, telnet!</p>
+            <p class="fragment">Parsing is easier to implement</p>
+            <p class="fragment">Request and response sizes are smaller</p>
+            <p class="fragment">Harder to debug</p>
+          </section>
+
+          <section>
+            <h3>TLS is preferred 🎉</h3>
+            <p class="fragment">ALPN for fast TLS HTTP/2 connections</p>
+            <p class="fragment">h2c - HTTP/2 over cleartext</p>
+            <p class="fragment">Using h2c takes longer than h2</p>
+            <p class="fragment">Browser vendors decided against supporting h2c</p>
+          </section>
+
+          <section>
+              <h3>No head-of-line blocking 🎉</h3>
+              <figure>
+                <img src="img/head-of-line-blocking.jpg" class="fragment" data-fragment-index="1">
+                <figcaption class="fragment" style="font-size: 0.5em;" data-fragment-index="1">
+                  Source: <a href="http://http2-explained.haxx.se/content/en/part2.html" target="_blank">http2-explained.haxx.se/content/en/part2.html</a>
+                </figcaption>
+              </figure>
+          </section>
+
+          <section>
+            <h3>Streams 🔀</h3>
+            <p class="fragment">Send data when it's available</p>
+            <p class="fragment">Replaces HTTP/1.1 pipelining</p>
+          </section>
+
+          <section>
+              <figure>
+                <img src="img/train-justin.jpg">
+                <figcaption style="font-size: 0.5em;">
+                  Source: <a href="http://http2-explained.haxx.se/content/en/part6.html" target="_blank">http2-explained.haxx.se/content/en/part6.html</a>
+                </figcaption>
+              </figure>
+          </section>
+
+          <section>
+              <figure>
+                <img src="img/train-ikea.jpg">
+                <figcaption style="font-size: 0.5em;">
+                  Source: <a href="http://http2-explained.haxx.se/content/en/part6.html" target="_blank">http2-explained.haxx.se/content/en/part6.html</a>
+                </figcaption>
+              </figure>
+          </section>
+
+          <section>
+              <figure>
+              <img src="img/train-multiplexed.jpg">
+                <figcaption style="font-size: 0.5em;">
+                  Source: <a href="http://http2-explained.haxx.se/content/en/part6.html" target="_blank">http2-explained.haxx.se/content/en/part6.html</a>
+                </figcaption>
+              </figure>
+          </section>
+
+          <section>
+            <h3>Streams 🔀</h3>
+            <p class="fragment">No need to open multiple TCP connections</p>
+            <p class="fragment">No need for image spriting hacks</p>
+            <p class="fragment">No need for concatenating of CSS/JS files hacks</p>
+            <p class="fragment">Caching can be used as intended</p>
+          </section>
+
+          <section>
+            <h3>Header Compression 🗜</h3>
+            <p class="fragment">Each HTTP/2 connection maintains a table of known headers</p>
+            <p class="fragment">Known headers can be referenced instead of retransmitted</p>
+            <p class="fragment">No need to send cookies (and similar) with every request 🍪</p>
+          </section>
+
+          <section>
+            <h3>Server Push 🎁</h3>
+            <p class="fragment">Send response in advance to prepopulate the cache</p>
+            <p class="fragment">Can be disabled altogether by the client</p>
+            <p class="fragment">Opt out of individual pushes by closing the stream</p>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h3>Part 2: HTTP/2 for WebAPIs 🔬</h3>
+          </section>
+
+          <section>
+            <h3>Caching can finally be used</h3>
+            <p class="fragment">Bold claim: Most Web APIs don't use caching as intended 👻</p>
+            <p class="fragment">Minimal request overhead:</p>
+            <p class="fragment">Single TCP connection with streams 🔀</p>
+            <p class="fragment">No need to send headers twice (HPACK) 🗜</p>
+          </section>
+
+          <section>
+            <h3>Caching in HTTP/1.1 🤓</h3>
+            <p class="fragment"><a href="https://tools.ietf.org/html/rfc7234">RFC 7234</a> - HTTP/1.1: Caching</p>
+            <p class="fragment">Cache entries may be used until they become stale 🧀</a>
+            <p class="fragment">Validation of stale entries:</a>
+            <p class="fragment">Time-based ⏰</p>
+            <p class="fragment">Tag-based 🏷</p>
+          </section>
+
+          <section>
+            <h3>Time-based validation ⏰</h3>
+            <code class="fragment" data-fragment-index="1">
+              <pre>HTTP/1.1 200 OK
+Last-Modified: Mon, 20 Jun 2016 13:52:06 GMT
+Cache-Control: public, max-age=60, s-maxage=60</pre>
+            </code>
+            <p class="fragment" data-fragment-index="1">Cache entry will become stale in 60 seconds</p>
+            <code class="fragment" data-fragment-index="2">
+              <pre>GET /users/janahrens HTTP/1.1
+If-Modified-Since: Mon, 20 Jun 2016 13:52:06 GMT</pre>
+            </code>
+            <p class="fragment" data-fragment-index="2">Revalidation request</p>
+            <code class="fragment">
+              <pre>HTTP/1.1 304 Not Modified
+Last-Modified: Mon, 20 Jun 2016 13:52:06 GMT
+Cache-Control: public, max-age=60, s-maxage=60</pre>
+            </code>
+          </section>
+          
+          <section>
+            <h3>Tag-based caching 🏷</h3>
+            <code class="fragment" data-fragment-index="1">
+              <pre>HTTP/1.1 200 OK
+ETag: "d056f833afafabe90e01640ae321b5da"
+Cache-Control: public, max-age=60, s-maxage=60</pre>
+            </code>
+            <p class="fragment" data-fragment-index="1">Cache entry will become stale in 60 seconds</p>
+            <code data-trim data-noescape class="fragment" data-fragment-index="2">
+              <pre>
+GET /users/janahrens HTTP/1.1
+If-None-Match: "d056f833afafabe90e01640ae321b5da"</pre>
+            </code>
+            <p class="fragment" data-fragment-index="2">Revalidation request</p>
+            <code data-trim data-noescape class="fragment" data-fragment-index="3">
+              <pre>HTTP/1.1 304 Not Modified
+Cache-Control: public, max-age=60, s-maxage=60</pre>
+            </code>
+          </section>
+
+          <section>
+            <h3>Model cache-friendly resources 💾</h3>
+            <p class="fragment">Don't include everything in a response</p>
+            <code class="fragment">
+<pre>{
+  "name": "Roy Fielding",
+  "contributions": [
+    {"id": "cce61228-19dc-4129-94b4-20ed0125c471", "name": "RFC 2616"},
+    {"id": "7f68c66d-b303-4ac4-9a3a-d68cfd81ad06", "name": "RFC 7230"}
+  ]
+}</pre>
+            </code>
+            <p class="fragment">vs.</p>
+            <code class="fragment">
+<pre>{
+  "name": "Roy Fielding",
+  "contributionIds": [
+    "cce61228-19dc-4129-94b4-20ed0125c471",
+    "7f68c66d-b303-4ac4-9a3a-d68cfd81ad06"
+  ]
+}</pre>
+            </code>
+            <p class="fragment">Do your clients support caching?</p>
+          </section>
+
+          <section>
+            <h3>Use server push 🎁</h3>
+            <p class="fragment">Push resources that the client will likely need</p>
+            <p class="fragment">For example: associated data, images, next-pages, ..</p>
+          </section>
+
+
+          <section>
+            <h3>Hypermedia becomes more important ✨</h3>
+            <p class="fragment">If resources become more cache-friendly make related resources easy to discover</p>
+            <code class="fragment">
+<pre>{
+  "name": "Roy Fielding",
+  "contributions": [
+    "/rfc/cce61228-19dc-4129-94b4-20ed0125c471",
+    "/rfc/7f68c66d-b303-4ac4-9a3a-d68cfd81ad06"
+  ]
+}</pre>
+            </code>
+            <p class="fragment">This is a very, very simple example ⚠️</p>
+          </section>
+
+          <section>
+            <h3>Is JSON still the right format?</h3>
+
+            <p class="fragment">HTTP/2 is binary</p>
+            <p class="fragment">JSON is plaintext</p>
+            <p class="fragment"><a href="http://bsonspec.org/">BSON</a> - binary JSON</p>
+            <p class="fragment">Or <a target="_blank" href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a>, they are </p>
+            <p class="fragment">Typed</p>
+            <p class="fragment">Space efficient</p>
+            <p class="fragment">Backwards compatible</p>
+            <p class="fragment">What type of clients do you serve?</p>
+          </section>
+
+          <section>
+            <h3>gRPC 🎩</h3>
+            <p class="fragment">RPC framework on top of HTTP/2 with Protocol Buffers</p>
+            <p class="fragment">"Abuse" push promises for bi-directional communication</p>
+            <p class="fragment">No longer RESTful</p>
+            <p class="fragment"><a href="http://grpc.io">grpc.io</a></p>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h3>Part 3: Adaptation of HTTP/2 📈</h3>
+          </section>
+
+          <section>
+            <h3>HTTP/2 Dashboard</h3>
+            <p><a target="_blank" href="http://isthewebhttp2yet.com">isthewebhttp2yet.com</a></p>
+            <p>based on <a target="_blank" href="http://isthewebhttp2yet.com">Alexa Top 1 Million</a></p>
+            <p>currently 12.7 %</p>
+          </section>
+
+          <section>
+            <h3>Web server support</h3>
+            <p>Nginx since 1.9.5 (September 2015)</p>
+            <p>Apache since 2.4.17 (October 2015)</p>
+            <p><a target="_blank" href="https://en.wikipedia.org/wiki/HTTP/2#Software_and_services_supporting_HTTP.2F2">Wikipedia: Software and services supporting HTTP/2</a></p>
+          </section>
+
+          <section>
+            <h3>cURL with HTTP/2</h3>
+
+            <p>cURL needs to be <a href="https://curl.haxx.se/docs/http2.html">linked against nghttp2</a></p>
+
+            <p>On OSX using Homebrew</p>
+
+            <code>
+<pre>$ brew install curl --with-nghttp2
+$ brew link curl --force</pre>
+            </code>
+
+            <code>
+<pre>$ curl -v --http2 https://www.google.com/</pre>
+            </code>
+          </section>
+
+          <section>
+            <h3>State of languages</h3>
+
+            <p class="fragment">Rack (Ruby) <a target="_blank" href="https://github.com/tenderlove/the_metal/issues/5">doesn't support HTTP/2, yet</a></p>
+            <p class="fragment">h2o <a target="_blank" href="https://h2o.examp1e.net/configure/http2_directives.html">can be used</a> as an application server (also for Ruby)</p>
+            <p class="fragment">Servlet 4.0 adds HTTP/2 support for Java EE 8 (not released)</p>
+            <p class="fragment">Don't wait for Servlet 4.0, use <a target="_blank" href="http://undertow.io/">Undertow</a>, 
+            <a target="_blank" href="http://netty.io/">Netty</a>,
+            <a target="_blank" href="http://www.eclipse.org/jetty/">Jetty</a>, ..
+            </p>
+            <p class="fragment">Go has <a target="_blank" href="https://http2.golang.org/">excellent HTTP/2 support</a> in the standard library</p>
+          </section>
+
+          <section>
+            <h3>Load balancing ⚠️</h3>
+            <p class="fragment">Long running TCP connection from client to server</p>
+            <p class="fragment">The GOAWAY frame</p>
+            <p class="fragment">Some hardware load balacers have support already (i.e. F5)</p>
+            <p class="fragment">No HTTP/2 support for Amazon ELB, yet</p>
+            <p class="fragment">Terminate HTTP/2 at the LB, speak HTTP/1.1 internally 💡</p>
+          </section>
+        </section>
+
+        <section>
+          <h3>Sources / Further reading</h3>
+          <p class="fragment">
+            <a href="https://tools.ietf.org/html/rfc7540">RFC 7540 (HTTP/2)</a>
+          </p>
+          <p class="fragment">
+            <a href="http://http2-explained.haxx.se/content/en">http2-explained.haxx.se/content/en</a>
+          </p>
+          <p class="fragment">
+            <a href="http://www.se-radio.net/2015/07/episode-232-mark-nottingham-on-http2">se-radio.net/2015/07/<br>episode-232-mark-nottingham-on-http2</a>
+          </p>
+          <p class="fragment">
+            <a href="https://http2.akamai.com/demo">http2.akamai.com/demo</a>
+          </p>
+          <p class="fragment">
+            <a target="_blank" href="http://blog.codeclimate.com/blog/2014/06/05/choose-protocol-buffers/">blog.codeclimate.com/blog/2014/06/05/choose-protocol-buffers</a>
+          </p>
+        </section>
+
+        <section>
+          <h3>Questions and/or comments?</h3>
+          <p>Slides: <a href="_blank" href="http://blog.jan-ahrens.eu/http2-webapi">blog.jan-ahrens.eu/http2-webapi</a></p>
+        </section>
+    </div>
+</div>
+
+<script src="slides/lib/js/head.min.js"></script>
+<script src="slides/js/reveal.js"></script>
+
+<script>
+    // More info https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+        history: true,
+
+        // More info https://github.com/hakimel/reveal.js#dependencies
+        dependencies: [
+            {src: 'slides/plugin/markdown/marked.js'},
+            {src: 'slides/plugin/markdown/markdown.js'},
+            {src: 'slides/plugin/notes/notes.js', async: true},
+            {
+                src: 'plugin/highlight/highlight.js', async: true, callback: function () {
+                [].forEach.call(document.querySelectorAll('.highlight'), function (v, i) {
+                    hljs.highlightBlock(v);
+                });
+            }
+            },
+        ]
+    });
+</script>
+</body>
+</html>
